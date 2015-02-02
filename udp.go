@@ -3,6 +3,7 @@ package goscrape
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"math/rand"
 	"net"
@@ -121,4 +122,125 @@ func UDPConnect(url string) (*net.UDPConn, uint64, error) {
 	}
 
 	return conn, connID, nil
+}
+
+func UDPScrape(conn *net.UDPConn, connID uint64, btih string) (int, int, int, error) {
+	/**
+	 * Here we send the scrape request.
+	 * We attach the connection ID from before.
+	 * The server responds with seed/leech counts.
+	 */
+
+	// Take the BTIH and convert it into bytes
+	infohash, err := hex.DecodeString(btih)
+
+	// Verify that the BTIH is 20 bytes
+	if err != nil || len(infohash) != 20 {
+		return 0, 0, 0, errors.New("Scrape Failed.")
+	}
+
+	// Make a new random transaction ID
+	transactionID := rand.Uint32()
+
+	// Make a request buffer
+	scrapeReq := new(bytes.Buffer)
+
+	// Write the connection ID from earlier to the buffer
+	err = binary.Write(scrapeReq, binary.BigEndian, connID)
+	if err != nil {
+		return 0, 0, 0, errors.New("Scrape Failed.")
+	}
+
+	// Write action 2 for scrape
+	err = binary.Write(scrapeReq, binary.BigEndian, uint32(2))
+	if err != nil {
+		return 0, 0, 0, errors.New("Scrape Failed.")
+	}
+
+	// Write the new transaction ID
+	err = binary.Write(scrapeReq, binary.BigEndian, transactionID)
+	if err != nil {
+		return 0, 0, 0, errors.New("Scrape Failed.")
+	}
+
+	// Write the 20 byte info hash
+	err = binary.Write(scrapeReq, binary.BigEndian, infohash)
+	if err != nil {
+		return 0, 0, 0, errors.New("Scrape Failed.")
+	}
+
+	// Write the packet to the server
+	_, err = conn.Write(scrapeReq.Bytes())
+	if err != nil {
+		return 0, 0, 0, errors.New("Scrape Failed.")
+	}
+
+	// Calculate how big the response packet should be
+	const minimumResponseLen = 8
+	const peerDataSize = 12
+	expectedResponseLen := minimumResponseLen + peerDataSize*1
+
+	// Make a response byte slice
+	responseBytes := make([]byte, expectedResponseLen)
+
+	// Read the response into the byte slice and get its length
+	var responseLen int
+	responseLen, err = conn.Read(responseBytes)
+	if err != nil {
+		return 0, 0, 0, errors.New("Scrape Failed.")
+	}
+
+	// Validate the response length
+	if responseLen < minimumResponseLen {
+		return 0, 0, 0, errors.New("Unexpected response size.")
+	}
+
+	// Write the response to a buffer
+	response := bytes.NewBuffer(responseBytes)
+
+	// Get the action code from the response
+	var responseAction uint32
+	err = binary.Read(response, binary.BigEndian, &responseAction)
+	if err != nil {
+		return 0, 0, 0, errors.New("Scrape Failed.")
+	}
+	// Response action should be 2 for scrape
+	if responseAction != 2 {
+		return 0, 0, 0, errors.New("Unexpected response action.")
+	}
+
+	// Get the transaction ID from the response
+	var responseTransactionID uint32
+	err = binary.Read(response, binary.BigEndian, &responseTransactionID)
+	if err != nil {
+		return 0, 0, 0, errors.New("Scrape Failed.")
+	}
+	// Transaction ID should match what we sent
+	if transactionID != responseTransactionID {
+		return 0, 0, 0, errors.New("Unexpected response transactionID.")
+	}
+
+	// Get the seeder count from the response
+	var seeders uint32
+	err = binary.Read(response, binary.BigEndian, &seeders)
+	if err != nil {
+		return 0, 0, 0, errors.New("Scrape Failed.")
+	}
+
+	// Get the completed count from the response
+	var completed uint32
+	err = binary.Read(response, binary.BigEndian, &completed)
+	if err != nil {
+		return 0, 0, 0, errors.New("Scrape Failed.")
+	}
+
+	// Get the leecher count from the response
+	var leechers uint32
+	err = binary.Read(response, binary.BigEndian, &leechers)
+	if err != nil {
+		return 0, 0, 0, errors.New("Scrape Failed.")
+	}
+
+	// Return seeds, leeches, and completed
+	return int(seeders), int(leechers), int(completed), nil
 }
