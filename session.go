@@ -2,7 +2,6 @@ package goscrape
 
 import (
 	"errors"
-	"fmt"
 	"net"
 )
 
@@ -13,10 +12,7 @@ type Session struct {
 }
 
 func NewConn(url string) Session {
-	conn, id, err := UDPConnect(url)
-	if err != nil {
-		fmt.Println(err)
-	}
+	conn, id, _ := UDPConnect(url)
 	return Session{conn, id, url}
 }
 
