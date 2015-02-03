@@ -28,7 +28,6 @@ func UDPConnect(url string) (*net.UDPConn, uint64, error) {
 
 	// Dial the server
 	conn, err := net.DialUDP("udp", nil, serverAddr)
-	defer conn.Close()
 
 	// Set a timeout
 	err = conn.SetDeadline(time.Now().Add(1 * time.Second))
@@ -131,6 +130,12 @@ func UDPScrape(conn *net.UDPConn, connID uint64, btih string) (Result, error) {
 	 * The server responds with seed/leech counts.
 	 */
 
+	// Set a timeout
+	err := conn.SetDeadline(time.Now().Add(1 * time.Second))
+	if err != nil {
+		return Result{"", 0, 0, 0}, errors.New("Couldn't set timeout")
+	}
+
 	// Take the BTIH and convert it into bytes
 	infohash, err := hex.DecodeString(btih)
 
@@ -172,7 +177,7 @@ func UDPScrape(conn *net.UDPConn, connID uint64, btih string) (Result, error) {
 	// Write the packet to the server
 	_, err = conn.Write(scrapeReq.Bytes())
 	if err != nil {
-		return Result{"", 0, 0, 0}, errors.New("Scrape Failed.")
+		return Result{"", 0, 0, 0}, errors.New("Coudn't write packet.")
 	}
 
 	// Calculate how big the response packet should be

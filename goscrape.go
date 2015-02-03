@@ -23,8 +23,30 @@ func NewBulk(trackers []string) Bulk {
 	return Bulk{sessions}
 }
 
-func ScrapeBulk(btihs []string) {
+func (bulk Bulk) ScrapeBulk(btihs []string) []Result {
+	var results []Result = make([]Result, len(btihs))
+	for i := 0; i < len(results); i++ {
+		results[i] = Result{btihs[i], 0, 0, 0}
+	}
 
+	for i, btih := range btihs {
+		for _, sess := range bulk.Sess {
+			result, err := sess.Scrape(btih)
+			if err == nil {
+				if result.Seeders > results[i].Seeders {
+					results[i].Seeders = result.Seeders
+				}
+				if result.Leechers > results[i].Leechers {
+					results[i].Leechers = result.Leechers
+				}
+				if result.Completed > results[i].Completed {
+					results[i].Completed = result.Completed
+				}
+			}
+		}
+	}
+
+	return results
 }
 
 func asyncSession(url string, output chan Session) {
