@@ -23,6 +23,10 @@ func NewBulk(trackers []string) Bulk {
 	return Bulk{sessions}
 }
 
+func ScrapeBulk(btihs []string) {
+
+}
+
 func asyncSession(url string, output chan Session) {
 	output <- NewConn(url)
 }
