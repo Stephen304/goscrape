@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func UDPConnect(url string) (*net.UDPConn, uint64, error) {
+func udpConnect(url string) (*net.UDPConn, uint64, error) {
 	// Remove udp:// and trailing / if it's there
 	if strings.HasPrefix(url, "udp://") || strings.HasPrefix(url, "UDP://") {
 		url = url[6:]
@@ -123,7 +123,7 @@ func UDPConnect(url string) (*net.UDPConn, uint64, error) {
 	return conn, connID, nil
 }
 
-func UDPScrape(conn *net.UDPConn, connID uint64, btihs []string) ([]Result, error) {
+func udpScrape(conn *net.UDPConn, connID uint64, btihs []string) ([]Result, error) {
 	/**
 	 * Here we send the scrape request.
 	 * We attach the connection ID from before.

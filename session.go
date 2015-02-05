@@ -18,14 +18,14 @@ type Result struct {
 	Completed int
 }
 
-func NewConn(url string) Session {
-	conn, id, _ := UDPConnect(url)
+func newConn(url string) Session {
+	conn, id, _ := udpConnect(url)
 	return Session{conn, id, url}
 }
 
-func (sess Session) Scrape(btihs []string) ([]Result, error) {
+func (sess Session) scrape(btihs []string) ([]Result, error) {
 	if sess.Conn == nil {
 		return []Result{}, errors.New("Session uninitialized.")
 	}
-	return UDPScrape(sess.Conn, sess.ConnID, btihs)
+	return udpScrape(sess.Conn, sess.ConnID, btihs)
 }

@@ -60,7 +60,7 @@ func (bulk *Bulk) ScrapeBulk(btihs []string) []Result {
 	// Loop through the sessions
 	for _, sess := range bulk.Sess {
 		// Perform a multi scrape with all btihs on the single session
-		scrape, err := sess.Scrape(cleanBtihs)
+		scrape, err := sess.scrape(cleanBtihs)
 		if err == nil {
 			// Merge result array into results
 			for i, result := range scrape {
@@ -81,7 +81,7 @@ func (bulk *Bulk) ScrapeBulk(btihs []string) []Result {
 }
 
 func asyncSession(url string, output chan Session) {
-	output <- NewConn(url)
+	output <- newConn(url)
 }
 
 func (bulk *Bulk) refreshSessions() {
