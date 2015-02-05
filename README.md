@@ -1,4 +1,4 @@
-# GoScrape
+# GoScrape [![GoDoc](https://godoc.org/github.com/Stephen304/goscrape?status.svg)](https://godoc.org/github.com/Stephen304/goscrape)
 It scrapes udp trackers
 
 ## Usage

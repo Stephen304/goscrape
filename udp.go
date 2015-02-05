@@ -23,7 +23,7 @@ func udpConnect(url string) (*net.UDPConn, uint64, error) {
 	// Get server address
 	serverAddr, err := net.ResolveUDPAddr("udp", url)
 	if err != nil {
-		return nil, 0, errors.New("Couldn't resolve address.")
+		return nil, 0, errors.New("couldn't resolve address.")
 	}
 
 	// Dial the server
@@ -32,7 +32,7 @@ func udpConnect(url string) (*net.UDPConn, uint64, error) {
 	// Set a timeout
 	err = conn.SetDeadline(time.Now().Add(1 * time.Second))
 	if err != nil {
-		return nil, 0, errors.New("Couldn't set timeout")
+		return nil, 0, errors.New("couldn't set timeout")
 	}
 
 	/**
@@ -56,23 +56,23 @@ func udpConnect(url string) (*net.UDPConn, uint64, error) {
 	// Write out the conn ID
 	err = binary.Write(reqBuffer, binary.BigEndian, connID)
 	if err != nil {
-		return nil, 0, errors.New("Couldn't write connection ID.")
+		return nil, 0, errors.New("couldn't write connection ID.")
 	}
 	// Write out the action
 	err = binary.Write(reqBuffer, binary.BigEndian, action)
 	if err != nil {
-		return nil, 0, errors.New("Couldn't write action.")
+		return nil, 0, errors.New("couldn't write action.")
 	}
 	// Write out the transaction id
 	err = binary.Write(reqBuffer, binary.BigEndian, transID)
 	if err != nil {
-		return nil, 0, errors.New("Couldn't write transaction ID.")
+		return nil, 0, errors.New("couldn't write transaction ID.")
 	}
 
 	// Write the request buffer to the connection
 	_, err = conn.Write(reqBuffer.Bytes())
 	if err != nil {
-		return nil, 0, errors.New("Couldn't write to connection.")
+		return nil, 0, errors.New("couldn't write to connection.")
 	}
 
 	// Make a response slice
@@ -82,11 +82,11 @@ func udpConnect(url string) (*net.UDPConn, uint64, error) {
 	var respLen int
 	respLen, err = conn.Read(respSlice)
 	if err != nil {
-		return nil, 0, errors.New("Couldn't get response.")
+		return nil, 0, errors.New("couldn't get response.")
 	}
 	// Verify that the response is 16 bytes
 	if respLen != 16 {
-		return nil, 0, errors.New("Unexpected response size.")
+		return nil, 0, errors.New("unexpected response size.")
 	}
 
 	// Make a response buffer
@@ -96,28 +96,28 @@ func udpConnect(url string) (*net.UDPConn, uint64, error) {
 	var respAction uint32
 	err = binary.Read(respBuffer, binary.BigEndian, &respAction)
 	if err != nil {
-		return nil, 0, errors.New("Couldn't read action response.")
+		return nil, 0, errors.New("couldn't read action response.")
 	}
 	// Response action must match requested action, 0 for connect
 	if respAction != 0 {
-		return nil, 0, errors.New("Unexpected response action.")
+		return nil, 0, errors.New("unexpected response action.")
 	}
 
 	// Get the response transaction ID
 	var respTransID uint32
 	err = binary.Read(respBuffer, binary.BigEndian, &respTransID)
 	if err != nil {
-		return nil, 0, errors.New("Couldn't read transaction response.")
+		return nil, 0, errors.New("couldn't read transaction response.")
 	}
 	// Response transaction ID must match what we sent
 	if respTransID != transID {
-		return nil, 0, errors.New("Unexpected response transactionID.")
+		return nil, 0, errors.New("unexpected response transactionID.")
 	}
 
 	// Get the connection ID we need
 	err = binary.Read(respBuffer, binary.BigEndian, &connID)
 	if err != nil {
-		return nil, 0, errors.New("Couldn't read connection ID.")
+		return nil, 0, errors.New("couldn't read connection ID.")
 	}
 
 	return conn, connID, nil
@@ -136,7 +136,7 @@ func udpScrape(conn *net.UDPConn, connID uint64, btihs []string) ([]Result, erro
 	// Set a timeout
 	err := conn.SetDeadline(time.Now().Add(1 * time.Second))
 	if err != nil {
-		return empty, errors.New("Couldn't set timeout.")
+		return empty, errors.New("couldn't set timeout.")
 	}
 
 	// Make a new random transaction ID
@@ -148,31 +148,31 @@ func udpScrape(conn *net.UDPConn, connID uint64, btihs []string) ([]Result, erro
 	// Write the connection ID from earlier to the buffer
 	err = binary.Write(scrapeReq, binary.BigEndian, connID)
 	if err != nil {
-		return empty, errors.New("Scrape Failed.")
+		return empty, errors.New("scrape failed")
 	}
 
 	// Write action 2 for scrape
 	err = binary.Write(scrapeReq, binary.BigEndian, uint32(2))
 	if err != nil {
-		return empty, errors.New("Scrape Failed.")
+		return empty, errors.New("scrape failed")
 	}
 
 	// Write the new transaction ID
 	err = binary.Write(scrapeReq, binary.BigEndian, transactionID)
 	if err != nil {
-		return empty, errors.New("Scrape Failed.")
+		return empty, errors.New("scrape failed")
 	}
 
 	// Loop through info hashes
 	for _, btih := range btihs {
 		infohash, err := hex.DecodeString(btih)
 		if err != nil {
-			return empty, errors.New("Couldn't decode base64.")
+			return empty, errors.New("couldn't decode base64.")
 		}
 		// Write the 20 byte info hash
 		err = binary.Write(scrapeReq, binary.BigEndian, infohash)
 		if err != nil {
-			return empty, errors.New("Scrape Failed.")
+			return empty, errors.New("scrape failed")
 		}
 	}
 
@@ -194,12 +194,12 @@ func udpScrape(conn *net.UDPConn, connID uint64, btihs []string) ([]Result, erro
 	var responseLen int
 	responseLen, err = conn.Read(responseBytes)
 	if err != nil {
-		return empty, errors.New("Scrape Failed.")
+		return empty, errors.New("scrape failed")
 	}
 
 	// Validate the response length
 	if responseLen < minimumResponseLen {
-		return empty, errors.New("Unexpected response size.")
+		return empty, errors.New("unexpected response size.")
 	}
 
 	// Write the response to a buffer
@@ -209,22 +209,22 @@ func udpScrape(conn *net.UDPConn, connID uint64, btihs []string) ([]Result, erro
 	var responseAction uint32
 	err = binary.Read(response, binary.BigEndian, &responseAction)
 	if err != nil {
-		return empty, errors.New("Scrape Failed.")
+		return empty, errors.New("scrape failed")
 	}
 	// Response action should be 2 for scrape
 	if responseAction != 2 {
-		return empty, errors.New("Unexpected response action.")
+		return empty, errors.New("unexpected response action.")
 	}
 
 	// Get the transaction ID from the response
 	var responseTransactionID uint32
 	err = binary.Read(response, binary.BigEndian, &responseTransactionID)
 	if err != nil {
-		return empty, errors.New("Scrape Failed.")
+		return empty, errors.New("scrape failed")
 	}
 	// Transaction ID should match what we sent
 	if transactionID != responseTransactionID {
-		return empty, errors.New("Unexpected response transactionID.")
+		return empty, errors.New("unexpected response transactionID.")
 	}
 
 	for i, _ := range results {
@@ -232,21 +232,21 @@ func udpScrape(conn *net.UDPConn, connID uint64, btihs []string) ([]Result, erro
 		var seeders uint32
 		err = binary.Read(response, binary.BigEndian, &seeders)
 		if err != nil {
-			return empty, errors.New("Scrape Failed.")
+			return empty, errors.New("scrape failed")
 		}
 
 		// Get the completed count from the response
 		var completed uint32
 		err = binary.Read(response, binary.BigEndian, &completed)
 		if err != nil {
-			return empty, errors.New("Scrape Failed.")
+			return empty, errors.New("scrape failed")
 		}
 
 		// Get the leecher count from the response
 		var leechers uint32
 		err = binary.Read(response, binary.BigEndian, &leechers)
 		if err != nil {
-			return empty, errors.New("Scrape Failed.")
+			return empty, errors.New("scrape failed")
 		}
 
 		results[i] = Result{Btih: btihs[i], Seeders: int(seeders), Leechers: int(leechers), Completed: int(completed)}
