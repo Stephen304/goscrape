@@ -45,7 +45,7 @@ func udpConnect(url string) (*net.UDPConn, uint64, error) {
 	// Set connection ID
 	var connID uint64 = 0x41727101980
 	// This means connect
-	var action uint32 = 0
+	var action uint32
 
 	// Generate a random transaction ID
 	transID := rand.Uint32()
@@ -130,8 +130,8 @@ func udpScrape(conn *net.UDPConn, connID uint64, btihs []string) ([]Result, erro
 	 * The server responds with seed/leech counts.
 	 */
 
-	var empty []Result = []Result{}
-	var results []Result = make([]Result, len(btihs))
+	var empty = []Result{}
+	var results = make([]Result, len(btihs))
 
 	// Set a timeout
 	err := conn.SetDeadline(time.Now().Add(1 * time.Second))
@@ -179,7 +179,7 @@ func udpScrape(conn *net.UDPConn, connID uint64, btihs []string) ([]Result, erro
 	// Write the packet to the server
 	_, err = conn.Write(scrapeReq.Bytes())
 	if err != nil {
-		return empty, errors.New("Coudn't write packet")
+		return empty, errors.New("couldn't write packet")
 	}
 
 	// Calculate how big the response packet should be
@@ -227,7 +227,7 @@ func udpScrape(conn *net.UDPConn, connID uint64, btihs []string) ([]Result, erro
 		return empty, errors.New("unexpected response transactionID")
 	}
 
-	for i, _ := range results {
+	for i := range results {
 		// Get the seeder count from the response
 		var seeders uint32
 		err = binary.Read(response, binary.BigEndian, &seeders)

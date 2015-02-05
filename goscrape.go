@@ -45,7 +45,7 @@ a new connection each time.
 */
 func NewBulk(trackers []string) Bulk {
 	size := len(trackers)
-	var sessions []Session = make([]Session, size)
+	var sessions = make([]Session, size)
 	var channels = make([]chan Session, size)
 
 	for i := 0; i < size; i++ {
@@ -71,7 +71,7 @@ func (bulk *Bulk) ScrapeBulk(btihs []string) []Result {
 	}
 
 	// Validate the btihs and get size
-	var cleanBtihs []string = make([]string, 0)
+	var cleanBtihs = make([]string, 0)
 	for _, btih := range btihs {
 		// Take the BTIH and convert it into bytes
 		infohash, err := hex.DecodeString(btih)
@@ -84,7 +84,7 @@ func (bulk *Bulk) ScrapeBulk(btihs []string) []Result {
 	}
 
 	// Make a result variable
-	var results []Result = make([]Result, len(cleanBtihs))
+	var results = make([]Result, len(cleanBtihs))
 	for i := 0; i < len(results); i++ {
 		results[i] = Result{cleanBtihs[i], 0, 0, 0}
 	}
