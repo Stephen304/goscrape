@@ -10,6 +10,11 @@ type Bulk struct {
 	Expire time.Time
 }
 
+func Single(urls []string, btihs []string) []Result {
+	bulk := NewBulk(urls)
+	return bulk.ScrapeBulk(btihs)
+}
+
 func NewBulk(trackers []string) Bulk {
 	size := len(trackers)
 	var sessions []Session = make([]Session, size)
