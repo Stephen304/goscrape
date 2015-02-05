@@ -1,3 +1,18 @@
+/*
+Package goscrape provides useful methods to scrape UDP trackers.
+
+Goscrape may be used to scrape a single tracker for many torrents,
+multiple trackers for a single torrent, or a single tracker for
+a single torrent.
+
+It provides 2 ways to do this:
+
+Bulk: The preferred method allows you to reuse connections to
+repeatedly scrape the same tracker(s) to save reconnection time.
+
+Single: A method for one-off scraping. It doesn't preserve the
+connection, so it will reconnect every time.
+*/
 package goscrape
 
 import (
@@ -6,7 +21,7 @@ import (
 )
 
 /*
-Stores multiple sessions and keeps track
+Bulk stores multiple sessions and keeps track
 of when to refresh the connection ID.
 */
 type Bulk struct {
@@ -15,7 +30,7 @@ type Bulk struct {
 }
 
 /*
-Scrapes 1 or more trackers for 1 or more
+Single scrapes 1 or more trackers for 1 or more
 torrents. It doesn't save the connection.
 */
 func Single(urls []string, btihs []string) []Result {
@@ -24,7 +39,7 @@ func Single(urls []string, btihs []string) []Result {
 }
 
 /*
-Creates a new bulk object for running multiple
+NewBulk creates a new bulk object for running multiple
 scrapes on the same set of trackers without recreating
 a new connection each time.
 */
@@ -46,7 +61,7 @@ func NewBulk(trackers []string) Bulk {
 }
 
 /*
-Scrapes a set of info hashes from the
+ScrapeBulk scrapes a set of info hashes from the
 connections the bulk was initialized with.
 */
 func (bulk *Bulk) ScrapeBulk(btihs []string) []Result {
