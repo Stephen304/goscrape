@@ -1,6 +1,7 @@
 package goscrape
 
 import (
+	"encoding/hex"
 	"time"
 )
 
@@ -30,15 +31,30 @@ func (bulk *Bulk) ScrapeBulk(btihs []string) []Result {
 	if time.Now().After(bulk.Expire) {
 		bulk.refreshSessions()
 	}
-	var results []Result = make([]Result, len(btihs))
-	for i := 0; i < len(results); i++ {
-		results[i] = Result{btihs[i], 0, 0, 0}
+
+	// Validate the btihs and get size
+	var cleanBtihs []string = make([]string, 0)
+	for _, btih := range btihs {
+		// Take the BTIH and convert it into bytes
+		infohash, err := hex.DecodeString(btih)
+		// Check errors
+		if err == nil {
+			if len(infohash) == 20 {
+				cleanBtihs = append(cleanBtihs, btih)
+			}
+		}
 	}
 
-	for i, btih := range btihs {
-		for _, sess := range bulk.Sess {
-			result, err := sess.Scrape(btih)
-			if err == nil {
+	var results []Result = make([]Result, len(cleanBtihs))
+	for i := 0; i < len(results); i++ {
+		results[i] = Result{cleanBtihs[i], 0, 0, 0}
+	}
+
+	for _, sess := range bulk.Sess {
+		scrape, err := sess.Scrape(cleanBtihs)
+		if err == nil {
+			// Merge result array into results
+			for i, result := range scrape {
 				if result.Seeders > results[i].Seeders {
 					results[i].Seeders = result.Seeders
 				}

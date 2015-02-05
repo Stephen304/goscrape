@@ -23,9 +23,9 @@ func NewConn(url string) Session {
 	return Session{conn, id, url}
 }
 
-func (sess Session) Scrape(btih string) (Result, error) {
+func (sess Session) Scrape(btihs []string) ([]Result, error) {
 	if sess.Conn == nil {
-		return Result{"", 0, 0, 0}, errors.New("Session uninitialized.")
+		return []Result{}, errors.New("Session uninitialized.")
 	}
-	return UDPScrape(sess.Conn, sess.ConnID, btih)
+	return UDPScrape(sess.Conn, sess.ConnID, btihs)
 }
