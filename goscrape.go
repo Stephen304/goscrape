@@ -28,6 +28,7 @@ func NewBulk(trackers []string) Bulk {
 }
 
 func (bulk *Bulk) ScrapeBulk(btihs []string) []Result {
+	// Refresh sessions if it's been over a minute
 	if time.Now().After(bulk.Expire) {
 		bulk.refreshSessions()
 	}
@@ -45,12 +46,15 @@ func (bulk *Bulk) ScrapeBulk(btihs []string) []Result {
 		}
 	}
 
+	// Make a result variable
 	var results []Result = make([]Result, len(cleanBtihs))
 	for i := 0; i < len(results); i++ {
 		results[i] = Result{cleanBtihs[i], 0, 0, 0}
 	}
 
+	// Loop through the sessions
 	for _, sess := range bulk.Sess {
+		// Perform a multi scrape with all btihs on the single session
 		scrape, err := sess.Scrape(cleanBtihs)
 		if err == nil {
 			// Merge result array into results
@@ -92,5 +96,6 @@ func (bulk *Bulk) refreshSessions() {
 		bulk.Sess[i] = <-channels[i]
 	}
 
+	// Update the expire time.
 	bulk.Expire = time.Now().Add(1 * time.Minute)
 }
