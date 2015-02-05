@@ -5,16 +5,29 @@ import (
 	"time"
 )
 
+/**
+ * Stores multiple sessions and keeps track
+ * of when to refresh the connection ID.
+ */
 type Bulk struct {
 	Sess   []Session
 	Expire time.Time
 }
 
+/**
+ * Scrapes 1 or more trackers for 1 or more
+ * torrents. It doesn't save the connection.
+ */
 func Single(urls []string, btihs []string) []Result {
 	bulk := NewBulk(urls)
 	return bulk.ScrapeBulk(btihs)
 }
 
+/**
+ * Creates a new bulk object for running multiple
+ * scrapes on the same set of trackers without recreating
+ * a new connection each time.
+ */
 func NewBulk(trackers []string) Bulk {
 	size := len(trackers)
 	var sessions []Session = make([]Session, size)
@@ -32,6 +45,10 @@ func NewBulk(trackers []string) Bulk {
 	return Bulk{Sess: sessions, Expire: time.Now().Add(1 * time.Minute)}
 }
 
+/**
+ * Scrapes a set of info hashes from the
+ * connections the bulk was initialized with.
+ */
 func (bulk *Bulk) ScrapeBulk(btihs []string) []Result {
 	// Refresh sessions if it's been over a minute
 	if time.Now().After(bulk.Expire) {
