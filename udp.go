@@ -27,7 +27,7 @@ func udpConnect(url string, localUdpPort int) (*net.UDPConn, uint64, error) {
 		return nil, 0, errors.New("couldn't resolve address")
 	}
 
-    var localAddr *net.UDPAddr
+	var localAddr *net.UDPAddr
 
 	// Get the local address if possible:
 	if localUdpPort != 0 {
@@ -42,7 +42,7 @@ func udpConnect(url string, localUdpPort int) (*net.UDPConn, uint64, error) {
 	conn, err := net.DialUDP("udp", localAddr, serverAddr)
 
 	// Set a timeout
-	err = conn.SetDeadline(time.Now().Add(5 * time.Second))
+	err = conn.SetDeadline(time.Now().Add(1 * time.Second))
 	if err != nil {
 		return nil, 0, errors.New("couldn't set timeout")
 	}
