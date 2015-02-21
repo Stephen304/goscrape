@@ -27,14 +27,15 @@ of when to refresh the connection ID.
 type Bulk struct {
 	Sess   []Session
 	Expire time.Time
+	LocalUdpPort int
 }
 
 /*
 Single scrapes 1 or more trackers for 1 or more
 torrents. It doesn't save the connection.
 */
-func Single(urls []string, btihs []string) []Result {
-	bulk := NewBulk(urls)
+func Single(urls []string, btihs []string, localUdpPort int) []Result {
+	bulk := NewBulk(urls, localUdpPort)
 	return bulk.ScrapeBulk(btihs)
 }
 
@@ -43,21 +44,22 @@ NewBulk creates a new bulk object for running multiple
 scrapes on the same set of trackers without recreating
 a new connection each time.
 */
-func NewBulk(trackers []string) Bulk {
+func NewBulk(trackers []string, localUdpPort int) Bulk {
 	size := len(trackers)
 	var sessions = make([]Session, size)
 	var channels = make([]chan Session, size)
 
 	for i := 0; i < size; i++ {
 		channels[i] = make(chan Session)
-		go asyncSession(trackers[i], channels[i])
+		go asyncSession(trackers[i], localUdpPort, channels[i])
 	}
 
 	for i := 0; i < size; i++ {
 		sessions[i] = <-channels[i]
 	}
 
-	return Bulk{Sess: sessions, Expire: time.Now().Add(1 * time.Minute)}
+	return Bulk{Sess: sessions, Expire: time.Now().Add(1 * time.Minute), 
+		        LocalUdpPort: localUdpPort}
 }
 
 /*
@@ -112,8 +114,8 @@ func (bulk *Bulk) ScrapeBulk(btihs []string) []Result {
 	return results
 }
 
-func asyncSession(url string, output chan Session) {
-	output <- newConn(url)
+func asyncSession(url string, localUdpPort int, output chan Session) {
+	output <- newConn(url, localUdpPort)
 }
 
 func (bulk *Bulk) refreshSessions() {
@@ -125,7 +127,7 @@ func (bulk *Bulk) refreshSessions() {
 	// Make channels and make new sessions asynchronously
 	for i := 0; i < size; i++ {
 		channels[i] = make(chan Session)
-		go asyncSession(bulk.Sess[i].URL, channels[i])
+		go asyncSession(bulk.Sess[i].URL, bulk.LocalUdpPort, channels[i])
 	}
 
 	// Replace old sessions with new ones
