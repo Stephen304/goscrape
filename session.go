@@ -28,8 +28,8 @@ type Result struct {
 	Completed int
 }
 
-func newConn(url string) Session {
-	conn, id, _ := udpConnect(url)
+func newConn(url string, localUdpPort int) Session {
+	conn, id, _ := udpConnect(url, localUdpPort)
 	return Session{conn, id, url}
 }
 

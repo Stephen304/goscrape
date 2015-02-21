@@ -9,9 +9,10 @@ import (
 	"net"
 	"strings"
 	"time"
+	"fmt"
 )
 
-func udpConnect(url string) (*net.UDPConn, uint64, error) {
+func udpConnect(url string, localUdpPort int) (*net.UDPConn, uint64, error) {
 	// Remove udp:// and trailing / if it's there
 	if strings.HasPrefix(url, "udp://") || strings.HasPrefix(url, "UDP://") {
 		url = url[6:]
@@ -26,8 +27,19 @@ func udpConnect(url string) (*net.UDPConn, uint64, error) {
 		return nil, 0, errors.New("couldn't resolve address")
 	}
 
+	var localAddr *net.UDPAddr
+
+	// Get the local address if possible:
+	if localUdpPort != 0 {
+		addr, err := net.ResolveUDPAddr("udp", fmt.Sprintf("0.0.0.0:%d", localUdpPort))
+		if err != nil {
+			return nil, 0, errors.New("couldn't resolve local UDP port address")
+		}
+		localAddr = addr
+	}
+
 	// Dial the server
-	conn, err := net.DialUDP("udp", nil, serverAddr)
+	conn, err := net.DialUDP("udp", localAddr, serverAddr)
 
 	// Set a timeout
 	err = conn.SetDeadline(time.Now().Add(1 * time.Second))
